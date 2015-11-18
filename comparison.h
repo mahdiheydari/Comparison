@@ -1,4 +1,4 @@
-
+#include "Alignment.h"
 #include <iostream>
 using namespace std;
 struct readStructStr
@@ -18,6 +18,7 @@ class Comparison{
         string notCorrectedReadFileName;
         double fullyRecoveredReads;
         double sumOfQualityDistances;
+        NW_Alignment a;
         long allReads;
         double truePositive;
         double trueNegative;
@@ -49,6 +50,7 @@ class Comparison{
         void writeInFileErrors(int allErrorINRead,int exsistErrorInRead, ofstream &worseStream,
                                    ofstream &notCorrectedReadF, ofstream &notCorrectedFastq,
                                    readStructStr newRead, string &erroneousRead, string &perfectRead, string &correctedRead);
+        bool compareReads(readStructStr &newRead, ofstream &worseStream,ofstream &notCorrectedReadF,ofstream  &notCorrectedFastq);
         bool fillNextRead(readStructStr & readInfo, ifstream &erroneousReadsFileStream,ifstream &perfectReadsStream , ifstream &correctedReadsStream);
 public:
         Comparison(string erroneousReadsFileNameInp,string perfectReadsFileNameInp,string correctedReadsFileNameInp,string notCorrectedReadFileNameInp)

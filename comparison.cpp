@@ -15,270 +15,12 @@
 #include <iomanip>      // std::setprecision
 #include <algorithm>
 #include "comparison.h"
+
 using namespace std;
-
-
-class NW_Alignment {
-private:
-
-        double matchScore;
-        double mismatchPenalty;
-        double gapPenalty;
-        double max(double x, double y);
-        double max(double x, double y, double z);
-        void    traceback(string& s1,string& s2,char **traceback );
-        void init();
-public:
-        NW_Alignment();
-        string getaligned(string a,string b,string c);
-        bool isEqual(string a, string b);
-        int findQualityDistance(string a, string b,string q) ;
-        int findDifference(string a, string b) ;
-        double get_similarity_per(string s1,string s2);
-        void printMatrix(char **s, int m, int n);
-        double enhancedAlignment(string &s1, string &s2);
-        int findAlignedDifference(string a, string b);
-};
-
-NW_Alignment::NW_Alignment() {
-        init();
-}
-void NW_Alignment::init()
-{
-        matchScore=1;
-        mismatchPenalty=1;
-        gapPenalty=20;
-}
-
-double NW_Alignment::max(double x, double y)
-{
-        return x > y ? x : y;
-}
-
-double NW_Alignment::max(double x, double y, double z)
-{
-        return x > y ? max(x, z) : max(y, z);
-}
-double NW_Alignment::get_similarity_per(string s1,string s2){
-        double fullScore= enhancedAlignment(s1,s1);
-        cout<<fullScore<<endl;
-        double simScore=enhancedAlignment(s1,s2);
-        if (s1==s2)
-                return 100;
-        return (simScore/fullScore)*100;
-}
-void NW_Alignment::traceback(string& s1,string& s2, char **traceback ){
-        string news1="";
-        string news2="";
-        int i=s1.length();
-        int j=s2.length();
-        while( i > 0 || j > 0 )
-        {
-                if (i>0 && j>0 && traceback[i][j]=='\\') {
-                        news1 += s1[ i-1 ] ;
-                        news2 += s2[ j-1 ] ;
-                        i-- ;
-                        j-- ;
-
-                } else {
-                        if (i>0 && traceback[i][j]=='|') {
-                                news2 += '-' ;
-                                news1 += s1[ i-1 ] ;
-                                i-- ;
-
-                        } else {
-                                if (j>0 ) {
-                                        news2 += s2[ j-1 ] ;
-                                        news1 += '-' ;
-                                        j-- ;
-
-                                } else {
-                                        if (i>0) {
-                                                news2 += '-' ;
-                                                news1 += s1[ i-1 ] ;
-                                                i-- ;
-                                        }
-                                }
-                        }
-                }
-
-        }
-
-        reverse( news1.begin(), news1.end() );
-        reverse( news2.begin(), news2.end() );
-        s1=news1;
-        s2=news2;
-
-}
-
-void NW_Alignment::printMatrix(char **s, int m, int n){
-        for (int i=0;i<m;i++ ){
-                for (int j=0;j<n;j++)
-                        cout<< s[i][j]<<"      ";
-                cout<<"\n";
-        }
-}
-
-double NW_Alignment::enhancedAlignment(string &s1, string &s2){
-        if (s1==s2)
-                return s1.length()*matchScore;
-        int n = s1.length() + 1, m = s2.length() + 1, i, j;
-        int d=3;
-        if (abs(m-n)>d || m<d || n<d)
-                return 0;
-        char **tracebackArr=new char*[n];
-        for(int i = 0; i < n; i++)
-        {
-                tracebackArr[i] = new char[m];
-        }
-
-        int **s = new int*[n];
-        for(int i = 0; i < n; i++)
-        {
-                s[i] = new int[m];
-        }
-        int p=0;
-        for (int i=0; i<n; i++) {
-                s[i][p]=i*-1;
-                if (i>d)
-                        p++;
-        }
-        p=0;
-        for (int j = 0; j < m; j++)
-        {
-                s[p][ j] = j*-1;
-                if (j>d)
-                        p++;
-        }
-        for (int i = 1; i <= n-1; i++)
-        {
-                int jIndexMin=i-d >0?i-d:1;
-                int jIndexMax=i+d<m?i+d:m-1;
-                for (int j = jIndexMin; j <= jIndexMax; j++)//for (int j = 1; j <= m-1; j++) // for (int j = jIndexMin; j <= i+(d); j++)//
-                {
-                        int scroeDiag = 0;
-
-                        if(s1[i-1]==s2[j-1]|| s1[i-1]=='N'||s2[i-1]=='N')
-                                scroeDiag = s[i - 1][ j - 1] + matchScore;   //match
-                                else
-                                        scroeDiag = s[i - 1][ j - 1]  -mismatchPenalty; //substitution
-                                        int scroeLeft = s[i][ j - 1] - gapPenalty; //insert
-                                        int scroeUp = s[i - 1][ j] - gapPenalty;  //delete
-                                        int maxScore =  max(scroeDiag,scroeLeft,scroeUp);//  Math.Max(Math.Max(scroeDiag, scroeLeft), scroeUp);
-                                s[i][ j] = maxScore;
-                        if (scroeDiag==maxScore) {
-                                tracebackArr[i][j]='\\';
-                        } else {
-                                if (maxScore==scroeLeft) {
-                                        tracebackArr[i][j]='-';
-                                } else {
-                                        if(maxScore==scroeUp) {
-                                                tracebackArr[i][j]='|';
-                                        }
-                                }
-                        }
-
-                }
-        }
-        traceback(s1, s2,tracebackArr);
-        int result=s[n-1][m-1];
-
-        for(int i = 0; i < n; i++)
-        {
-                delete[] s[i];
-        }
-        delete[] s;
-        for(int i = 0; i < n; i++)
-        {
-                delete[] tracebackArr[i];
-        }
-        delete[] tracebackArr;
-        return result;
-
-}
-
-int NW_Alignment::findAlignedDifference(string a, string b) {
-        NW_Alignment al;
-        al.enhancedAlignment(a,b);
-        int i=0;
-        int j=0;
-        int d=0;
-        while(i<a.length()&&j<b.length()) {
-                if (a[i]!=b[j]) {
-                        d++;
-                }
-                i++;
-                j++;
-        }
-        return d;
-
-}
-int NW_Alignment::findDifference(string a, string b) {
-
-        int i=0;
-        int j=0;
-        int d=0;
-        while(i<a.length()&&j<b.length()) {
-                if (a[i]!=b[j]) {
-                        d++;
-                }
-                i++;
-                j++;
-        }
-        return d;
-
-}
-
-int NW_Alignment::findQualityDistance(string a, string b,string q) {
-        int i=0;
-        int j=0;
-        int d=0;
-        while(i<a.length()&&j<b.length()) {
-                if (a[i]!=b[j] ) {
-                        d=d+int(q[i]);
-                }
-                i++;
-                j++;
-        }
-        return d;
-
-}
-
-bool NW_Alignment::isEqual(string a, string b){
-        int i=0;
-        int j=0;
-        int d=0;
-        bool equal=true;
-        while(i<a.length()&&j<b.length()) {
-                if (a[i]!=b[j]&& a[i]!='N') {
-                        equal=false;
-                }
-                i++;
-                j++;
-        }
-        return equal;
-}
-string NW_Alignment::getaligned(string a,string b,string c) {
-        int i=0;
-        string result="";
-        while (i<a.length()) {
-                if ((a[i]==b[i])&& (a[i]==c[i])) {
-                        result=result+'*';
-                }
-                else {
-                        result=result+a[i];
-                }
-                i++;
-        }
-        return result;
-}
-
-
 
 
 
 bool Comparison::validateCorrectionResult() {
-        NW_Alignment a;
         ifstream perfectReadsStream, correctedReadsStream,erroneousReadsFileStream;
         ofstream notCorrectedReadF, worseStream, notCorrectedFastq;
         if (! openFileStream(erroneousReadsFileStream,perfectReadsStream,correctedReadsStream,notCorrectedReadF,worseStream,notCorrectedFastq))
@@ -286,7 +28,6 @@ bool Comparison::validateCorrectionResult() {
         readStructStr newRead;
         while (     fillNextRead(newRead,erroneousReadsFileStream,perfectReadsStream ,correctedReadsStream) )
         {
-                int exsistErrorInRead=0,qualityDistance=0,numOfChangesInRead=0,initialQualityDistance=0,numberOfErrorInRead=0 , allErrorINRead=0;;
                 numOfReads=numOfReads+1;
                 if ( (int)numOfReads % 10000 == 0 ) {
                         cout << "Processing read number " << numOfReads
@@ -294,36 +35,46 @@ bool Comparison::validateCorrectionResult() {
                         cout.flush();
 
                 }
-                string erroneousRead =newRead.erroneousRead;
-                string correctedRead=newRead.correctedRead;
-                string perfectRead=newRead.perfectRead;
-
-                a.enhancedAlignment(perfectRead,correctedRead);
-                a.enhancedAlignment(correctedRead,erroneousRead);
-
-                initialQualityDistance=a.findQualityDistance(perfectRead, erroneousRead,newRead.qProfile);
-                if (initialQualityDistance>maximumQualityDistance) {
-                        maximumQualityDistance=initialQualityDistance;
-                }
-                qualityDistance=a.findQualityDistance(correctedRead,perfectRead,newRead.qProfile);
-                sumOfQualityDistances=sumOfQualityDistances+qualityDistance;
-                
-                //update the value of TP, TN, FP, FN for bases and also for full recovery
-                updataStatistic(correctedRead ,erroneousRead, perfectRead, allErrorINRead, exsistErrorInRead);
-
-                if (exsistErrorInRead==0)
-                        continue;
-                writeInFileErrors( allErrorINRead, exsistErrorInRead, worseStream,
-                                    notCorrectedReadF, notCorrectedFastq,
-                                    newRead,  erroneousRead,  perfectRead,  correctedRead);
+                compareReads( newRead,  worseStream, notCorrectedReadF, notCorrectedFastq);
 
         }
         closeFileStream(erroneousReadsFileStream,perfectReadsStream,correctedReadsStream,notCorrectedReadF,worseStream,notCorrectedFastq);
         writeReport();
         return true;
 }
+/*
+ *
+ * @return true if the corrected read dosn't have any error, otherwise it return false and it should write the
+ * remaining errors in seperate filese.
+ *
+ */
+bool Comparison::compareReads(readStructStr &newRead, ofstream &worseStream,ofstream &notCorrectedReadF,ofstream  &notCorrectedFastq){
 
+        int exsistErrorInRead=0,qualityDistance=0,numOfChangesInRead=0,initialQualityDistance=0,numberOfErrorInRead=0 , allErrorINRead=0;;
+        string erroneousRead =newRead.erroneousRead;
+        string correctedRead=newRead.correctedRead;
+        string perfectRead=newRead.perfectRead;
 
+        a.enhancedAlignment(perfectRead,correctedRead);
+        a.enhancedAlignment(correctedRead,erroneousRead);
+
+        initialQualityDistance=a.findQualityDistance(perfectRead, erroneousRead,newRead.qProfile);
+        if (initialQualityDistance>maximumQualityDistance) {
+                maximumQualityDistance=initialQualityDistance;
+        }
+        qualityDistance=a.findQualityDistance(correctedRead,perfectRead,newRead.qProfile);
+        sumOfQualityDistances=sumOfQualityDistances+qualityDistance;
+
+        //update the value of TP, TN, FP, FN for bases and also for full recovery
+        updataStatistic(correctedRead ,erroneousRead, perfectRead, allErrorINRead, exsistErrorInRead);
+        if (exsistErrorInRead==0)
+                return true;
+        writeInFileErrors( allErrorINRead, exsistErrorInRead, worseStream,
+                                   notCorrectedReadF, notCorrectedFastq,
+                                   newRead,  erroneousRead,  perfectRead,  correctedRead);
+
+        return false;
+}
 
 /*
  * this procedure update the value of TP, TN, FP and FN
@@ -373,7 +124,7 @@ void Comparison::updataStatistic(string  &correctedRead , string  & erroneousRea
         }
         gain=100*(double)(truePositive-falsePositive)/(double)(truePositive+falseNegative);
         gainFR=100*(double)(truePositiveFullRec-falsePositiveFullRec)/(double)(truePositiveFullRec+falseNegativeFullRec);
-        correctionAVG=((double) truePositive/(double)(truePositive+falseNegative));
+        correctionAVG=100*((double) truePositive/(double)(truePositive+falseNegative));
 
 
 }
@@ -386,7 +137,7 @@ void Comparison::writeInFileErrors(int allErrorINRead,int exsistErrorInRead, ofs
                                    ofstream &notCorrectedReadF, ofstream &notCorrectedFastq,
                                    readStructStr newRead, string &erroneousRead, string &perfectRead, string &correctedRead)
 {
-        NW_Alignment a;
+
         notCorrectedReadF<<newRead.strID <<"    |"<< "read number:      "<<numOfReads <<"        num of all Errors:      "<<allErrorINRead<<"    number of remaining Errors:     "<< exsistErrorInRead<<endl;
         string alignedError=a.getaligned(erroneousRead,perfectRead,correctedRead);
 
