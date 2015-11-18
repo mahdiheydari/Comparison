@@ -26,6 +26,8 @@ int main(int argc, char ** args)
         compare.validateCorrectionResult();
         clock_t end = clock();
         double elapsed_secs = double(end-begin)/(double) (CLOCKS_PER_SEC*60);
+
+        cout << "\n----------------------------------------------------\n" << endl;
         cout<<endl<<"comparison finished in: "<<elapsed_secs <<" min" <<endl;
         cout << "\n----------------------------------------------------\n" << endl;
 
