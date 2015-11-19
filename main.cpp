@@ -19,6 +19,8 @@ int main(int argc, char ** args)
         string notCorrectedReadFileName;
         if (argc==5) {
                 notCorrectedReadFileName=args[4];
+        }else{
+                notCorrectedReadFileName="notCorrectedRead";
         }
         clock_t begin = clock();
         Comparison compare(erroneousReadsFileName,perfectReadsFileName,correctedReadsFileName,notCorrectedReadFileName);

@@ -58,6 +58,8 @@ bool Comparison::compareReads(readStructStr &newRead, ofstream &worseStream,ofst
         a.enhancedAlignment(perfectRead,correctedRead);
         a.enhancedAlignment(correctedRead,erroneousRead);
 
+
+
         initialQualityDistance=a.findQualityDistance(perfectRead, erroneousRead,newRead.qProfile);
         if (initialQualityDistance>maximumQualityDistance) {
                 maximumQualityDistance=initialQualityDistance;
@@ -102,6 +104,7 @@ void Comparison::updataStatistic(string  &correctedRead , string  & erroneousRea
                         }
                         else {
                                 falsePositive++;
+                                exsistErrorInRead++;
                         }
                 }
         }
@@ -186,7 +189,7 @@ bool Comparison::openFileStream(ifstream& erroneousReadsFileStream,ifstream& per
         correctedReadsStream.open(correctedReadsFileName.c_str());
         erroneousReadsFileStream.open(erroneousReadsFileName.c_str());
         notCorrectedReadF.open(notCorrectedReadFileName.c_str(), ios::out);
-        string WorseName=notCorrectedReadFileName+"Worse.fastq";
+        string WorseName="Worse";
         worseReadF.open(WorseName.c_str(), ios::out);
         string fastqName=notCorrectedReadFileName+".fastq";
         notCorrectedFastq.open(fastqName.c_str(), ios::out);
@@ -221,16 +224,17 @@ bool Comparison::fillNextRead(readStructStr & readInfo, ifstream& erroneousReads
         {
                 string temp="";
 
-                getline(erroneousReadsFileStream,readInfo.strID);
-                getline(erroneousReadsFileStream,readInfo.erroneousRead);
-                getline(erroneousReadsFileStream,readInfo.orientation);
-                getline(erroneousReadsFileStream,readInfo.qProfile);
-                getline(perfectReadsStream, temp);
-                getline(perfectReadsStream,readInfo.perfectRead);
-                getline(correctedReadsStream, temp);
-                getline(correctedReadsStream,readInfo.correctedRead);
-                getline(correctedReadsStream, temp);
-                getline(correctedReadsStream, temp);
+                erroneousReadsFileStream>>readInfo.strID;
+                erroneousReadsFileStream>>readInfo.erroneousRead;
+                erroneousReadsFileStream>>readInfo.orientation;
+                erroneousReadsFileStream>>readInfo.qProfile;
+                perfectReadsStream>>temp;
+                perfectReadsStream>>readInfo.perfectRead;
+                correctedReadsStream>>temp;
+                correctedReadsStream>>readInfo.correctedRead;
+                correctedReadsStream>>temp;
+                correctedReadsStream>>temp;
+
                 return true;
         }
 
@@ -247,8 +251,8 @@ void Comparison::writeReport(){
 
         cout <<endl<< "<<<Alignment based report>>>" << endl;
         cout << "----------------------------------------------------" << endl;
-        cout<<"Sum of  errors in the Data Set: "<<(int)numberOfAllErrors<<", (" <<(double)numberOfAllErrors/(double)numOfReads<<" per read)"<<endl;
-        cout<<"Sum of alignment distances between corrected and perfect read is: "<<(int)sumOfAlignmentDist<<", (" <<(double)sumOfAlignmentDist/(double)numOfReads<<" per read)"<<endl;
+        cout<<"Sum of  errors in the Data Set: "<<(int)(truePositive+falseNegative)<<", (" <<(double)(truePositive+falseNegative)/(double)numOfReads<<" per read)"<<endl;
+
 
         cout <<endl<< "<<<The evaluation report based on base pairs>>>"<<endl;
         cout << "----------------------------------------------------" << endl;
