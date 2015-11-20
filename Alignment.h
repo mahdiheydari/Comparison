@@ -21,6 +21,9 @@ using namespace std;
 class NW_Alignment {
 private:
 
+        char **tracebackArr;
+        int **s;
+
         double matchScore;
         double mismatchPenalty;
         double gapPenalty;
@@ -30,6 +33,7 @@ private:
         void init();
 public:
         NW_Alignment();
+        ~NW_Alignment();
         string getaligned(string a,string b,string c);
         bool isEqual(string a, string b);
         int findQualityDistance(string a, string b,string q) ;

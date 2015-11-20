@@ -4,11 +4,40 @@
 NW_Alignment::NW_Alignment() {
         init();
 }
+
+NW_Alignment::~NW_Alignment()
+{
+        int n = 500;
+
+        for(int i = 0; i < n; i++) {
+                delete[] s[i];
+        }
+        delete[] s;
+        for(int i = 0; i < n; i++) {
+                delete[] tracebackArr[i];
+        }
+        delete[] tracebackArr;
+}
+
+
 void NW_Alignment::init()
 {
         matchScore=1;
         mismatchPenalty=1;
         gapPenalty=5;
+
+        int n = 500, m = 500;
+        tracebackArr=new char*[n];
+        for(int i = 0; i < n; i++)
+        {
+                tracebackArr[i] = new char[m];
+        }
+
+        s = new int*[n];
+        for(int i = 0; i < n; i++)
+        {
+                s[i] = new int[m];
+        }
 }
 
 double NW_Alignment::max(double x, double y)
@@ -80,17 +109,7 @@ double NW_Alignment::enhancedAlignment(string &s1, string &s2){
         int d=3;
         if (abs(m-n)>d || m<d || n<d)
                 return 0;
-        char **tracebackArr=new char*[n];
-        for(int i = 0; i < n; i++)
-        {
-                tracebackArr[i] = new char[m];
-        }
 
-        int **s = new int*[n];
-        for(int i = 0; i < n; i++)
-        {
-                s[i] = new int[m];
-        }
         int p=0;
         for (int i=0; i<n; i++) {
                 s[i][p]=i*-1;
@@ -137,18 +156,7 @@ double NW_Alignment::enhancedAlignment(string &s1, string &s2){
         traceback(s1, s2,tracebackArr);
         int result=s[n-1][m-1];
 
-        for(int i = 0; i < n; i++)
-        {
-                delete[] s[i];
-        }
-        delete[] s;
-        for(int i = 0; i < n; i++)
-        {
-                delete[] tracebackArr[i];
-        }
-        delete[] tracebackArr;
         return result;
-
 }
 
 

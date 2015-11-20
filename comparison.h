@@ -40,7 +40,7 @@ class Comparison{
         double existErrorNum;
         double allErrorNum;
         void writeReport();
-        void updataStatistic(string  &correctedRead , string  & erroneousRead, string  & perfectRead, int &allErrorINRead, int &exsistErrorInRead);
+        void updateStatistic(string  &correctedRead , string  & erroneousRead, string  & perfectRead, int &allErrorINRead, int &exsistErrorInRead);
         bool openFileStream(ifstream& erroneousReadsFileStream,ifstream& perfectReadsStream,
                                 ifstream& correctedReadsStream, ofstream &notCorrectedReadF,
                                 ofstream &worseReadF,ofstream& notCorrectedFastq);

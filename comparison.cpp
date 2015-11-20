@@ -68,7 +68,7 @@ bool Comparison::compareReads(readStructStr &newRead, ofstream &worseStream,ofst
         sumOfQualityDistances=sumOfQualityDistances+qualityDistance;
 
         //update the value of TP, TN, FP, FN for bases and also for full recovery
-        updataStatistic(correctedRead ,erroneousRead, perfectRead, allErrorINRead, exsistErrorInRead);
+        updateStatistic(correctedRead ,erroneousRead, perfectRead, allErrorINRead, exsistErrorInRead);
         if (exsistErrorInRead==0)
                 return true;
         writeInFileErrors( allErrorINRead, exsistErrorInRead, worseStream,
@@ -83,11 +83,12 @@ bool Comparison::compareReads(readStructStr &newRead, ofstream &worseStream,ofst
  * and for full recovery statistic
  *
  */
-void Comparison::updataStatistic(string  &correctedRead , string  & erroneousRead, string  & perfectRead, int &allErrorINRead, int &exsistErrorInRead){
+void Comparison::updateStatistic(string  &correctedRead , string  & erroneousRead, string  & perfectRead, int &allErrorINRead, int &exsistErrorInRead){
         char correctChar,modifiedChar,erroneousChar;
         for (int i=0; i<correctedRead.length(); i++) {
                 modifiedChar=correctedRead[i];
                 erroneousChar=erroneousRead[i];
+
                 correctChar=perfectRead[i];
                 if (erroneousChar!=correctChar) {
                         allErrorINRead++;
@@ -228,8 +229,12 @@ bool Comparison::fillNextRead(readStructStr & readInfo, ifstream& erroneousReads
                 erroneousReadsFileStream>>readInfo.erroneousRead;
                 erroneousReadsFileStream>>readInfo.orientation;
                 erroneousReadsFileStream>>readInfo.qProfile;
-                perfectReadsStream>>temp;
-                perfectReadsStream>>readInfo.perfectRead;
+
+
+                getline(perfectReadsStream, temp);
+                perfectReadsStream >> readInfo.perfectRead;
+                getline(perfectReadsStream, temp);
+
                 correctedReadsStream>>temp;
                 correctedReadsStream>>readInfo.correctedRead;
                 correctedReadsStream>>temp;
