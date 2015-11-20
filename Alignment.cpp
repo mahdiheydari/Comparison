@@ -1,42 +1,40 @@
 
 #include"Alignment.h"
 
-NW_Alignment::NW_Alignment() {
-        init();
+NW_Alignment::NW_Alignment():maxSize(500) {
+        matchScore=1;
+        mismatchPenalty=1;
+        gapPenalty=5;
+        alocateMemory();
 }
 
 NW_Alignment::~NW_Alignment()
 {
-        int n = 500;
 
-        for(int i = 0; i < n; i++) {
+        deAlocateMemory();
+}
+
+void NW_Alignment::deAlocateMemory()
+{
+        for(int i = 0; i < maxSize; i++) {
                 delete[] s[i];
         }
         delete[] s;
-        for(int i = 0; i < n; i++) {
+        for(int i = 0; i < maxSize; i++) {
                 delete[] tracebackArr[i];
         }
-        delete[] tracebackArr;
-}
-
-
-void NW_Alignment::init()
+        delete[] tracebackArr;}
+void NW_Alignment::alocateMemory()
 {
-        matchScore=1;
-        mismatchPenalty=1;
-        gapPenalty=5;
-
-        int n = 500, m = 500;
-        tracebackArr=new char*[n];
-        for(int i = 0; i < n; i++)
+        tracebackArr=new char*[maxSize];
+        for(int i = 0; i < maxSize; i++)
         {
-                tracebackArr[i] = new char[m];
+                tracebackArr[i] = new char[maxSize];
         }
-
-        s = new int*[n];
-        for(int i = 0; i < n; i++)
+        s = new int*[maxSize];
+        for(int i = 0; i < maxSize; i++)
         {
-                s[i] = new int[m];
+                s[i] = new int[maxSize];
         }
 }
 
@@ -93,19 +91,23 @@ void NW_Alignment::traceback(string& s1,string& s2, char **traceback ){
                 }
 
         }
-
         reverse( news1.begin(), news1.end() );
         reverse( news2.begin(), news2.end() );
         s1=news1;
         s2=news2;
-
 }
 
 
 double NW_Alignment::enhancedAlignment(string &s1, string &s2){
+       if (s1.length()>maxSize || s2.length()>maxSize){
+                deAlocateMemory();
+                maxSize=max(s1.length(),s2.length())+1;
+                alocateMemory();
+        }
         if (s1==s2)
                 return s1.length()*matchScore;
-        int n = s1.length() + 1, m = s2.length() + 1, i, j;
+
+        int n = s1.length() + 1, m = s2.length() + 1;
         int d=3;
         if (abs(m-n)>d || m<d || n<d)
                 return 0;
@@ -130,7 +132,6 @@ double NW_Alignment::enhancedAlignment(string &s1, string &s2){
                 for (int j = jIndexMin; j <= jIndexMax; j++)//for (int j = 1; j <= m-1; j++) // for (int j = jIndexMin; j <= i+(d); j++)//
                 {
                         int scroeDiag = 0;
-
                         if(s1[i-1]==s2[j-1]|| s1[i-1]=='N'||s2[i-1]=='N')
                                 scroeDiag = s[i - 1][ j - 1] + matchScore;   //match
                                 else
@@ -142,15 +143,15 @@ double NW_Alignment::enhancedAlignment(string &s1, string &s2){
                         if (scroeDiag==maxScore) {
                                 tracebackArr[i][j]='\\';
                         } else {
-                                if (maxScore==scroeLeft) {
-                                        tracebackArr[i][j]='-';
-                                } else {
-                                        if(maxScore==scroeUp) {
-                                                tracebackArr[i][j]='|';
+                                if(maxScore==scroeUp) {
+                                        tracebackArr[i][j]='|';
+                                }
+                                else {
+                                        if (maxScore==scroeLeft) {
+                                                tracebackArr[i][j]='-';
                                         }
                                 }
                         }
-
                 }
         }
         traceback(s1, s2,tracebackArr);

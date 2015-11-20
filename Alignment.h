@@ -23,14 +23,15 @@ private:
 
         char **tracebackArr;
         int **s;
-
+        size_t maxSize;
         double matchScore;
         double mismatchPenalty;
         double gapPenalty;
         double max(double x, double y);
         double max(double x, double y, double z);
         void    traceback(string& s1,string& s2,char **traceback );
-        void init();
+        void alocateMemory();
+        void deAlocateMemory();
 public:
         NW_Alignment();
         ~NW_Alignment();

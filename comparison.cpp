@@ -50,16 +50,13 @@ bool Comparison::validateCorrectionResult() {
  */
 bool Comparison::compareReads(readStructStr &newRead, ofstream &worseStream,ofstream &notCorrectedReadF,ofstream  &notCorrectedFastq){
 
-        int exsistErrorInRead=0,qualityDistance=0,numOfChangesInRead=0,initialQualityDistance=0,numberOfErrorInRead=0 , allErrorINRead=0;;
+        int exsistErrorInRead=0,qualityDistance=0,initialQualityDistance=0 , allErrorINRead=0;;
         string erroneousRead =newRead.erroneousRead;
         string correctedRead=newRead.correctedRead;
         string perfectRead=newRead.perfectRead;
-
+        a.enhancedAlignment(perfectRead,erroneousRead);
         a.enhancedAlignment(perfectRead,correctedRead);
-        a.enhancedAlignment(correctedRead,erroneousRead);
-
-
-
+        a.enhancedAlignment(perfectRead,erroneousRead);
         initialQualityDistance=a.findQualityDistance(perfectRead, erroneousRead,newRead.qProfile);
         if (initialQualityDistance>maximumQualityDistance) {
                 maximumQualityDistance=initialQualityDistance;
@@ -85,7 +82,7 @@ bool Comparison::compareReads(readStructStr &newRead, ofstream &worseStream,ofst
  */
 void Comparison::updateStatistic(string  &correctedRead , string  & erroneousRead, string  & perfectRead, int &allErrorINRead, int &exsistErrorInRead){
         char correctChar,modifiedChar,erroneousChar;
-        for (int i=0; i<correctedRead.length(); i++) {
+        for (int i=0; i<correctedRead.length()&& i<erroneousRead.length()&& i<perfectRead.length(); i++) {
                 modifiedChar=correctedRead[i];
                 erroneousChar=erroneousRead[i];
 
@@ -129,7 +126,6 @@ void Comparison::updateStatistic(string  &correctedRead , string  & erroneousRea
         gain=100*(double)(truePositive-falsePositive)/(double)(truePositive+falseNegative);
         gainFR=100*(double)(truePositiveFullRec-falsePositiveFullRec)/(double)(truePositiveFullRec+falseNegativeFullRec);
         correctionAVG=100*((double) truePositive/(double)(truePositive+falseNegative));
-
 
 }
 /*write reads which still have error in a schematic way to understand where the errors are still are. (notCorrectedReadF)
