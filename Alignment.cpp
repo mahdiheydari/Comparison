@@ -1,7 +1,7 @@
 
 #include"Alignment.h"
 
-NW_Alignment::NW_Alignment():maxSize(500) {
+NW_Alignment::NW_Alignment():maxSize(100) {
         matchScore=1;
         mismatchPenalty=1;
         gapPenalty=5;
@@ -99,9 +99,9 @@ void NW_Alignment::traceback(string& s1,string& s2, char **traceback ){
 
 
 double NW_Alignment::enhancedAlignment(string &s1, string &s2){
-       if (s1.length()>maxSize || s2.length()>maxSize){
+       if (s1.length()>=maxSize || s2.length()>=maxSize){
                 deAlocateMemory();
-                maxSize=max(s1.length(),s2.length())+1;
+                maxSize=max(s1.length(),s2.length())+2;
                 alocateMemory();
         }
         if (s1==s2)
