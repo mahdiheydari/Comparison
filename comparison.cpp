@@ -228,13 +228,14 @@ bool Comparison::fillNextRead(readStructStr & readInfo, ifstream& erroneousReads
 
 
                 getline(perfectReadsStream, temp);
-                perfectReadsStream >> readInfo.perfectRead;
-                getline(perfectReadsStream, temp);
+               // perfectReadsStream >> readInfo.perfectRead;
+                getline(perfectReadsStream,  readInfo.perfectRead);
 
-                correctedReadsStream>>temp;
-                correctedReadsStream>>readInfo.correctedRead;
-                correctedReadsStream>>temp;
-                correctedReadsStream>>temp;
+
+                getline( correctedReadsStream,temp);
+                getline(correctedReadsStream,readInfo.correctedRead);
+                getline(correctedReadsStream,temp);
+                getline(correctedReadsStream,temp);
 
                 return true;
         }
