@@ -18,6 +18,113 @@
 
 using namespace std;
 
+bool Comparison::compareTwoEC() {
+        ifstream initialStream, firstECStream,secondECStream;
+        ofstream outinitialStream, outfirstECStream,outSecondECStream;
+        AlignmentJan ali(100, 2, 1, -1, -3);
+        if (! openFileStreamTwoEC(initialStream,firstECStream,secondECStream,outinitialStream,outfirstECStream,outSecondECStream))
+                return false;
+        readStructStr newRead;
+        size_t numOfDiff=0;
+        numOfReads=1;
+        while (     fillNextReadTwoEC(newRead,  initialStream,firstECStream , secondECStream) )
+        {
+                numOfReads=numOfReads+1;
+                if ( (int)numOfReads % 10000 == 0 ) {
+                        //cout << "Processing read number " << numOfReads;
+                        //cout.flush();
+
+                }
+                if (newRead.firstECRead != newRead.secondECRead){
+                        numOfDiff++;
+                        cout<<numOfDiff<<endl;
+                        cout<<"initial\t\t\t" <<newRead.erroneousRead<<endl;
+                        cout<<"Brownie\t\t"  <<ali.align(newRead.erroneousRead, newRead.firstECRead)  << "\t" <<newRead.firstECRead<<endl;
+                        cout<<"efBrownie\t" <<ali.align(newRead.erroneousRead, newRead.secondECRead) << "\t" <<newRead.secondECRead<<endl;
+
+                        ali.align(newRead.erroneousRead, newRead.secondECRead);
+                        outSecondECStream<<newRead.strID<<endl;
+                        outSecondECStream<<newRead.secondECRead<<endl;
+                        outSecondECStream<<"+"<<endl;
+                        outSecondECStream<<newRead.qProfile<<endl;
+
+                        outfirstECStream<<newRead.strID<<endl;
+                        outfirstECStream<<newRead.firstECRead<<endl;
+                        outfirstECStream<<"+"<<endl;
+                        outfirstECStream<<newRead.qProfile<<endl;
+
+                }
+                //compareReadsTwoEC(newRead, )
+
+
+        }
+        closeFileStreamTwoEC(initialStream,firstECStream,secondECStream,outinitialStream,outfirstECStream,outSecondECStream);
+        return true;
+
+}
+bool Comparison::closeFileStreamTwoEC(ifstream& initialStream,ifstream& firstECStream,ifstream& secondECStream,
+                                     ofstream &outinitialStream,ofstream &outfirstECStream,ofstream& outSecondECStream)
+{
+        initialStream.close();
+        firstECStream.close();
+        secondECStream.close();
+        outinitialStream.close();
+        outfirstECStream.close();
+        outSecondECStream.close();
+        return true;
+
+}
+bool Comparison::openFileStreamTwoEC(ifstream& initialStream,ifstream& firstECStream,ifstream& secondECStream,
+                                     ofstream &outinitialStream,ofstream &outfirstECStream,ofstream& outSecondECStream)
+{
+        if(!initialStream.good()){
+            std::cerr << "Error opening file"<< erroneousReadsFileName << std::endl;
+            return false;
+        }
+        if(!firstECStream.good()){
+            std::cerr << "Error opening file"<< firstECFileName << std::endl;
+            return false;
+        }
+        if(!secondECStream.good()){
+            std::cerr << "Error opening file"<< secondECFileName << std::endl;
+            return false;
+        }
+        initialStream.open(erroneousReadsFileName.c_str());
+        firstECStream.open(firstECFileName.c_str());
+        secondECStream.open(secondECFileName.c_str());
+
+        outinitialStream.open(erroneousReadsFileOutName.c_str(), ios::out);
+        outfirstECStream.open(firstECFileOutName.c_str(), ios::out);
+        outSecondECStream.open(secondECFileOutName.c_str(), ios::out);
+        return true;
+}
+bool Comparison::fillNextReadTwoEC(readStructStr & readInfo, ifstream& initialStream,ifstream& firstECStream , ifstream& secondECStream)
+{
+        if (!initialStream.eof()&&!initialStream.eof()&& !secondECStream.eof())
+        {
+                string temp="";
+
+
+                getline( initialStream,readInfo.strID);
+                getline(initialStream,readInfo.erroneousRead);
+                getline(initialStream,readInfo.orientation);
+                getline(initialStream,readInfo.qProfile);
+
+                getline( firstECStream,temp);
+                getline(firstECStream,readInfo.firstECRead);
+                getline(firstECStream,temp);
+                getline(firstECStream,temp);
+
+                getline( secondECStream,temp);
+                getline(secondECStream,readInfo.secondECRead);
+                getline(secondECStream,temp);
+                getline(secondECStream,temp);
+
+                return true;
+        }
+
+        return false;
+}
 
 
 bool Comparison::validateCorrectionResult() {
@@ -29,7 +136,7 @@ bool Comparison::validateCorrectionResult() {
         while (     fillNextRead(newRead,erroneousReadsFileStream,perfectReadsStream ,correctedReadsStream) )
         {
                 numOfReads=numOfReads+1;
-                if ( (int)numOfReads % 10000 == 0 ) {
+                if ( (int)numOfReads % 500 == 0 ) {
                         cout << "Processing read number " << numOfReads
                         << " gain is: " << gain<<"\r";
                         cout.flush();
@@ -42,6 +149,11 @@ bool Comparison::validateCorrectionResult() {
         writeReport();
         return true;
 }
+
+
+
+
+
 /*
  *
  * @return true if the corrected read dosn't have any error, otherwise it return false and it should write the
@@ -81,15 +193,14 @@ bool Comparison::compareReads(readStructStr &newRead, ofstream &worseStream,ofst
  *
  */
 void Comparison::updateStatistic(string  &correctedRead , string  & erroneousRead, string  & perfectRead, int &allErrorINRead, int &exsistErrorInRead){
-        char correctChar,modifiedChar,erroneousChar;
+        char perfectChar,modifiedChar,erroneousChar;
         for (int i=0; i<correctedRead.length()&& i<erroneousRead.length()&& i<perfectRead.length(); i++) {
                 modifiedChar=correctedRead[i];
                 erroneousChar=erroneousRead[i];
-
-                correctChar=perfectRead[i];
-                if (erroneousChar!=correctChar) {
+                perfectChar=perfectRead[i];
+                if (erroneousChar!=perfectChar) {
                         allErrorINRead++;
-                        if (modifiedChar==correctChar) {
+                        if (modifiedChar==perfectChar) {
                                 truePositive++;
                         }
                         else {
@@ -97,7 +208,7 @@ void Comparison::updateStatistic(string  &correctedRead , string  & erroneousRea
                                 exsistErrorInRead++;
                         }
                 } else {
-                        if(modifiedChar==correctChar) {
+                        if(modifiedChar==perfectChar) {
                                 trueNegative++;
                         }
                         else {
@@ -106,23 +217,29 @@ void Comparison::updateStatistic(string  &correctedRead , string  & erroneousRea
                         }
                 }
         }
+
         if(allErrorINRead>maximumNumOfError) {
                 maximumNumOfError=allErrorINRead;
         }
         //full recovery updataSta
-        if (exsistErrorInRead!=0){
-                if (allErrorINRead==0)
-                        falsePositiveFullRec++;
+        if (allErrorINRead!=0){
+                if (exsistErrorInRead==0)
+                {
+                        truePositiveFullRec++;
+                        fullyRecoveredReads++;
+                }
                 else
                         falseNegativeFullRec++;
         }
         else {
-                fullyRecoveredReads++;
-                if (allErrorINRead>0)
-                        truePositiveFullRec++;
-                else
+                if (exsistErrorInRead>0)
+                        falsePositiveFullRec++;
+                else{
                         trueNegativeFullRec++;
+                        fullyRecoveredReads++;
+                }
         }
+        numberOfAllErrors=numberOfAllErrors+allErrorINRead;
         gain=100*(double)(truePositive-falsePositive)/(double)(truePositive+falseNegative);
         gainFR=100*(double)(truePositiveFullRec-falsePositiveFullRec)/(double)(truePositiveFullRec+falseNegativeFullRec);
         correctionAVG=100*((double) truePositive/(double)(truePositive+falseNegative));
@@ -226,13 +343,11 @@ bool Comparison::fillNextRead(readStructStr & readInfo, ifstream& erroneousReads
                 erroneousReadsFileStream>>readInfo.orientation;
                 erroneousReadsFileStream>>readInfo.qProfile;
 
-
                 getline(perfectReadsStream, temp);
-               // perfectReadsStream >> readInfo.perfectRead;
                 getline(perfectReadsStream,  readInfo.perfectRead);
 
 
-                getline( correctedReadsStream,temp);
+                getline(correctedReadsStream,temp);
                 getline(correctedReadsStream,readInfo.correctedRead);
                 getline(correctedReadsStream,temp);
                 getline(correctedReadsStream,temp);
@@ -247,28 +362,28 @@ void Comparison::writeReport(){
         std::cout << std::fixed;
         cout <<endl<< "<<<Report for reads>>>" << endl;
         cout << "----------------------------------------------------\n" << endl;
-        cout<<"Number of reads for comparison: "<<(int)numOfReads<<endl;
-        cout<<"Maximum number Of Errors in one read is: "<< (int)maximumNumOfError <<", and maximum quality distances is: "<<(int)maximumQualityDistance <<endl;
+        cout<<"Number of reads for comparison: "<<numOfReads<<endl;
+        cout<<"Maximum number Of Errors in one read is: "<< maximumNumOfError <<", and maximum quality distances is: "<<maximumQualityDistance <<endl;
 
 
         cout <<endl<< "<<<Alignment based report>>>" << endl;
         cout << "----------------------------------------------------" << endl;
-        cout<<"Sum of  errors in the Data Set: "<<(int)(truePositive+falseNegative)<<", (" <<(double)(truePositive+falseNegative)/(double)numOfReads<<" per read)"<<endl;
+        cout<<"Sum of  errors in the Data Set: "<<(truePositive+falseNegative)<<", (" <<(double)(truePositive+falseNegative)/(double)numOfReads<<" per read)"<<endl;
 
 
-        cout <<endl<< "<<<The evaluation report based on base pairs>>>"<<endl;
+        cout << endl << "<<<The evaluation report based on base pairs>>>"<<endl;
         cout << "----------------------------------------------------" << endl;
-        cout<<"Among "<<(int)(truePositive+falseNegative)<<" of Errors "<<(int)truePositive<<" number of them are corrected which is: ("<<std::setprecision(2)<<correctionAVG<<"%)"<<endl ;
-        cout<<"     TP:"<<(int)truePositive<<"      TN:"<<(int)trueNegative<<"      FP:"<<(int)falsePositive <<"    FN:"<<(int)falseNegative<<endl;
-        cout <<"    The Gain value percentage is: ("<<std::setprecision(2)<<gain<<"%)" <<endl;
+        cout << "Among " << numberOfAllErrors <<" of Errors "<<truePositive<<" number of them are corrected which is: ("<<std::setprecision(2)<<correctionAVG<<"%)"<<endl ;
+        cout << "     TP:"<<truePositive<<"      TN:"<<trueNegative<<"      FP:"<<falsePositive <<"    FN:"<<falseNegative<<endl;
+        cout << "    The Gain value percentage is: ("<<std::setprecision(2)<<gain<<"%)" <<endl;
 
         cout<<endl<<"<<<The evaluation report based full read recovery>>>"<<endl;
         cout << "----------------------------------------------------" << endl;
-        cout<<" Among "<<(int)numOfReads<<" of reads "<<(int)fullyRecoveredReads<<", number of them are fully recovered which is: ("<<((double)fullyRecoveredReads/(double)numOfReads)*100<<")%"<<endl ;
-        cout<<"     TP: "<<(int)truePositiveFullRec<<"      TN: "<<(int)trueNegativeFullRec<<"      FP: "<<(int)falsePositiveFullRec<<"     FN: "<<(int)falseNegativeFullRec<<endl;
+        cout<<" Among "<<numOfReads<<" of reads "<<fullyRecoveredReads<<", number of them are fully recovered which is: ("<<((double)fullyRecoveredReads/(double)numOfReads)*100<<")%"<<endl ;
+        cout<<"     TP: "<<truePositiveFullRec<<"      TN: "<<trueNegativeFullRec<<"      FP: "<<falsePositiveFullRec<<"     FN: "<<falseNegativeFullRec<<endl;
         cout <<"    The Gain value percentage for full recovery of reads is: ("<<gainFR<<"%)" <<endl;
 
         cout<<endl<< "<<<Quality based reports>>>"<<endl;
         cout << "----------------------------------------------------" << endl;
-        cout<<"The sum of quality distances between original reads and corrected reads is: "<<(int)sumOfQualityDistances<<" ,("<<double( sumOfQualityDistances)/(double)(numOfReads)<<"   per read) ,and the number of changes is:   "<<numOfAllChanges<<", (" <<(double)numOfAllChanges/(double) numOfReads <<" per read)" <<endl;
+        cout<<"The sum of quality distances between original reads and corrected reads is: "<<sumOfQualityDistances<<" ,("<<double( sumOfQualityDistances)/(double)(numOfReads)<<"   per read) ,and the number of changes is:   "<<numOfAllChanges<<", (" <<(double)numOfAllChanges/(double) numOfReads <<" per read)" <<endl;
 }

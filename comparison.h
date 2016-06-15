@@ -10,6 +10,8 @@ struct readStructStr
         string orientation;
         string perfectRead;
         string correctedRead;
+        string firstECRead;
+        string secondECRead;
 };
 class Comparison{
         string erroneousReadsFileName;
@@ -17,26 +19,26 @@ class Comparison{
         string correctedReadsFileName;
         string notCorrectedReadFileName;
         double fullyRecoveredReads;
-        double sumOfQualityDistances;
+        size_t sumOfQualityDistances;
         NW_Alignment a;
         long allReads;
-        double truePositive;
-        double trueNegative;
-        double falsePositive;
-        double falseNegative;
-        int truePositiveFullRec;
-        int trueNegativeFullRec;
-        int falsePositiveFullRec;
-        int falseNegativeFullRec;
+        size_t truePositive;
+        size_t trueNegative;
+        size_t falsePositive;
+        size_t falseNegative;
+        size_t truePositiveFullRec;
+        size_t trueNegativeFullRec;
+        size_t falsePositiveFullRec;
+        size_t falseNegativeFullRec;
         double gain;
         double gainFR;
         double correctionAVG;
-        double maximumNumOfError;
-        double maximumQualityDistance;
+        size_t maximumNumOfError;
+        size_t maximumQualityDistance;
         double sumOfAlignmentDist;
         double numOfAllChanges;
-        int numOfReads;
-        double numberOfAllErrors;
+        size_t numOfReads;
+        size_t numberOfAllErrors;
         double existErrorNum;
         double allErrorNum;
         void writeReport();
@@ -79,6 +81,28 @@ public:
                 gainFR=0;
                 correctionAVG=0;
         }
-        bool validateCorrectionResult();
 
+
+        string firstECFileName;
+        string secondECFileName;
+
+        string erroneousReadsFileOutName;
+        string firstECFileOutName;
+        string secondECFileOutName;
+        Comparison(string erroneousReadsFileNameInp,string firstECFileNameInp,string secondECFileNameInp):
+        erroneousReadsFileName(erroneousReadsFileNameInp),firstECFileName(firstECFileNameInp),secondECFileName(secondECFileNameInp)
+        {
+                erroneousReadsFileOutName="out."+erroneousReadsFileName;
+                firstECFileOutName="out."+firstECFileName;
+                secondECFileOutName="out."+secondECFileName;
+
+        }
+        bool closeFileStreamTwoEC(ifstream& initialStream,ifstream& firstECStream,ifstream& secondECStream,
+                                     ofstream &outinitialStream,ofstream &outfirstECStream,ofstream& outSecondECStream);
+
+        bool openFileStreamTwoEC(ifstream& initialStream,ifstream& firstECStream,ifstream& secondECStream,
+                                     ofstream &outinitialStream,ofstream &outfirstECStream,ofstream& outSecondECStream);
+        bool fillNextReadTwoEC(readStructStr & readInfo, ifstream& initialStream,ifstream& firstECStream , ifstream& secondECStream);
+        bool validateCorrectionResult();
+        bool compareTwoEC() ;
 };
